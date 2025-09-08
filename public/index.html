@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>xui.one API Client</title>
+  <link href="/dist/styles.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const { createRoot } = ReactDOM;
+
+    const apiCommands = {
+      'GET INFO': ['mysql_query', 'user_info', 'get_lines', 'get_mags', 'get_enigmas', 'get_users', 'get_streams', 'get_channels', 'get_stations', 'get_movies', 'get_series_list', 'get_episodes'],
+      'LOGS & EVENT API': ['activity_logs', 'live_connections', 'credit_logs', 'client_logs', 'user_logs', 'stream_errors', 'watch_output', 'system_logs', 'login_logs', 'restream_logs', 'mag_events'],
+      'LINE API': ['get_line', 'create_line', 'edit_line', 'delete_line', 'disable_line', 'enable_line', 'unban_line', 'ban_line'],
+      'USER API': ['get_user', 'create_user', 'edit_user', 'delete_user', 'disable_user', 'enable_user'],
+      'MAG API': ['get_mag', 'create_mag', 'edit_mag', 'delete_mag', 'disable_mag', 'enable_mag', 'unban_mag', 'ban_mag', 'convert_mag'],
+      'ENIGMA API': ['get_enigma', 'create_enigma', 'edit_enigma', 'delete_enigma', 'disable_enigma', 'enable_enigma', 'unban_enigma', 'ban_enigma', 'convert_enigma'],
+      'BOUQUETE API': ['get_bouquets', 'get_bouquet', 'create_bouquet', 'edit_bouquet', 'delete_bouquet'],
+      'ACCESS CODE API': ['get_access_codes', 'get_access_code', 'create_access_code', 'edit_access_code', 'delete_access_code'],
+      'HMAC API': ['get_hmacs', 'get_hmac', 'create_hmac', 'edit_hmac', 'delete_hmac'],
+      'EPG API': ['get_epgs', 'get_epg', 'create_epg', 'edit_epg', 'delete_epg', 'reload_epg'],
+      'GROUPS API': ['get_groups', 'get_group', 'create_group', 'edit_group', 'delete_group'],
+      'PACKAGES API': ['get_packages', 'get_package', 'create_package', 'edit_package', 'delete_package'],
+      'TRANSCODING PROFILE API': ['get_transcode_profiles', 'get_transcode_profile', 'create_transcode_profile', 'edit_transcode_profile', 'delete_transcode_profile'],
+      'RTMP API': ['get_rtmp_ips', 'get_rtmp_ip', 'create_rtmp_ip', 'edit_rtmp_ip', 'delete_rtmp_ip'],
+      'CATEGORIES API': ['get_categories', 'get_category', 'create_category', 'edit_category', 'delete_category'],
+      'SUB RESELLER API': ['get_subresellers', 'get_subreseller', 'create_subreseller', 'edit_subreseller', 'delete_subreseller'],
+      'WATCH FOLDERS API': ['get_watch_folders', 'get_watch_folder', 'create_watch_folder', 'edit_watch_folder', 'delete_watch_folder', 'reload_watch_folder'],
+      'BLOCKED ISP & IP API': ['get_blocked_isps', 'add_blocked_isp', 'delete_blocked_isp', 'get_blocked_uas', 'add_blocked_ua', 'delete_blocked_ua', 'get_blocked_ips', 'add_blocked_ip', 'delete_blocked_ip', 'flush_blocked_ips'],
+      'STREAMS API': ['get_stream', 'create_stream', 'edit_stream', 'start_stream', 'stop_stream', 'delete_stream'],
+      'CHANNEL API': ['get_channel', 'create_channel', 'edit_channel', 'start_channel', 'stop_channel', 'delete_channel'],
+      'STATION API': ['get_station', 'create_station', 'edit_station', 'start_station', 'stop_station', 'delete_station'],
+      'MOVIE API': ['get_movie', 'create_movie', 'edit_movie', 'start_movie', 'stop_movie', 'delete_movie'],
+      'SERIES API': ['get_series', 'create_series', 'edit_series', 'delete_series'],
+      'EPISONE API': ['get_episode', 'create_episode', 'delete_episode', 'edit_episode', 'start_episode', 'stop_episode'],
+      'SERVERS API': ['get_servers', 'get_server', 'install_server', 'delete_server', 'edit_server', 'install_proxy', 'edit_proxy'],
+      'SETTINGS, STATS AND OTHER API': ['get_settings', 'edit_settings', 'get_server_stats', 'get_fpm_status', 'get_rtmp_stats', 'get_free_space', 'get_pids', 'get_certificate_info', 'reload_nginx', 'clear_temp', 'clear_streams', 'update_blacklist', 'get_directory', 'kill_pid', 'kill_connection', 'reload_cache']
+    };
+
+    const App = () => {
+      const [selectedCategory, setSelectedCategory] = useState('');
+      const [selectedCommand, setSelectedCommand] = useState('');
+      const [response, setResponse] = useState(null);
+      const [error, setError] = useState(null);
+      const [isLoading, setIsLoading] = useState(false);
+
+      const handleSubmit = async () => {
+        if (!selectedCommand) return;
+        setIsLoading(true);
+        setError(null);
+        setResponse(null);
+
+        try {
+          const url = `/api/proxy?action=${selectedCommand}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.status === 'STATUS_FAILURE') {
+            setError(`API Error: ${data.error}`);
+          } else {
+            setResponse(JSON.stringify(data, null, 2));
+          }
+        } catch (err) {
+          setError('Failed to fetch data. Check proxy or network.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+          <h1 className="text-2xl font-bold mb-4">xui.one API Client</h1>
+          <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Select API Category</label>
+              <select
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedCommand('');
+                }}
+              >
+                <option value="">Select Category</option>
+                {Object.keys(apiCommands).map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+            {selectedCategory && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Select API Command</label>
+                <select
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                  value={selectedCommand}
+                  onChange={(e) => setSelectedCommand(e.target.value)}
+                >
+                  <option value="">Select Command</option>
+                  {apiCommands[selectedCategory].map((command) => (
+                    <option key={command} value={command}>{command}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <button
+              className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+              onClick={handleSubmit}
+              disabled={!selectedCommand || isLoading}
+            >
+              {isLoading ? 'Loading...' : 'Send Request'}
+            </button>
+            {error && <p className="mt-4 text-red-500">{error}</p>}
+            {response && (
+              <div className="mt-4">
+                <h2 className="text-lg font-semibold">Response:</h2>
+                <pre className="bg-gray-200 p-4 rounded-md overflow-auto">{response}</pre>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
