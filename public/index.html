@@ -12,8 +12,21 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, Component } = React;
     const { createRoot } = ReactDOM;
+
+    class ErrorBoundary extends Component {
+      state = { error: null };
+      static getDerivedStateFromError(error) {
+        return { error: error.message };
+      }
+      render() {
+        if (this.state.error) {
+          return <div className="text-red-500 p-4">Error: {this.state.error}</div>;
+        }
+        return this.props.children;
+      }
+    }
 
     const apiCommands = {
       'GET INFO': ['mysql_query', 'user_info', 'get_lines', 'get_mags', 'get_enigmas', 'get_users', 'get_streams', 'get_channels', 'get_stations', 'get_movies', 'get_series_list', 'get_episodes'],
@@ -128,7 +141,11 @@
     };
 
     const root = createRoot(document.getElementById('root'));
-    root.render(<App />);
+    root.render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    );
   </script>
 </body>
 </html>
